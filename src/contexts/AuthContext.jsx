@@ -1,3 +1,6 @@
+
+
+
 // import React, { createContext, useContext, useEffect, useState } from 'react'
 // import { supabase } from '../lib/supabase'
 
@@ -18,7 +21,9 @@
 
 //   useEffect(() => {
 //     const getSession = async () => {
-//       const { data: { session } } = await supabase.auth.getSession()
+//       const {
+//         data: { session }
+//       } = await supabase.auth.getSession()
 //       setSession(session)
 //       setUser(session?.user ?? null)
 //       setLoading(false)
@@ -26,13 +31,13 @@
 
 //     getSession()
 
-//     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-//       async (event, session) => {
-//         setSession(session)
-//         setUser(session?.user ?? null)
-//         setLoading(false)
-//       }
-//     )
+//     const {
+//       data: { subscription }
+//     } = supabase.auth.onAuthStateChange((_event, session) => {
+//       setSession(session)
+//       setUser(session?.user ?? null)
+//       setLoading(false)
+//     })
 
 //     return () => subscription.unsubscribe()
 //   }, [])
@@ -42,11 +47,11 @@
 //       email,
 //       password,
 //       options: {
+//         emailRedirectTo: `${window.location.origin}/profile-setup`,
 //         data: {
-//           full_name: fullName,
-//               emailRedirectTo: `${window.location.origin}/profile-setup`
-//         },
-//       },
+//           full_name: fullName
+//         }
+//       }
 //     })
 //     return { data, error }
 //   }
@@ -54,7 +59,18 @@
 //   const signIn = async (email, password) => {
 //     const { data, error } = await supabase.auth.signInWithPassword({
 //       email,
-//       password,
+//       password
+//     })
+//     return { data, error }
+//   }
+
+//   // New: Google Sign-In using Supabase OAuth
+//   const signInWithGoogle = async () => {
+//     const { data, error } = await supabase.auth.signInWithOAuth({
+//       provider: 'google',
+//       options: {
+//         redirectTo: `${window.location.origin}/profile-setup`
+//       }
 //     })
 //     return { data, error }
 //   }
@@ -70,6 +86,7 @@
 //     signUp,
 //     signIn,
 //     signOut,
+//     signInWithGoogle, // expose Google sign-in
 //   }
 
 //   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
@@ -96,9 +113,7 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const getSession = async () => {
-      const {
-        data: { session }
-      } = await supabase.auth.getSession()
+      const { data: { session } } = await supabase.auth.getSession()
       setSession(session)
       setUser(session?.user ?? null)
       setLoading(false)
@@ -106,9 +121,7 @@ export const AuthProvider = ({ children }) => {
 
     getSession()
 
-    const {
-      data: { subscription }
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
       setUser(session?.user ?? null)
       setLoading(false)
@@ -122,7 +135,7 @@ export const AuthProvider = ({ children }) => {
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/profile-setup`,
+        emailRedirectTo: getRedirectURL('/profile-setup'),
         data: {
           full_name: fullName
         }
@@ -132,19 +145,15 @@ export const AuthProvider = ({ children }) => {
   }
 
   const signIn = async (email, password) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    })
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     return { data, error }
   }
 
-  // New: Google Sign-In using Supabase OAuth
   const signInWithGoogle = async () => {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/profile-setup`
+        redirectTo: getRedirectURL('/profile-setup')
       }
     })
     return { data, error }
@@ -154,6 +163,14 @@ export const AuthProvider = ({ children }) => {
     await supabase.auth.signOut()
   }
 
+  // 🔧 Utility to return correct redirect base
+  const getRedirectURL = (path = '/') => {
+    const origin = typeof window !== 'undefined'
+      ? window.location.origin
+      : 'https://notespedia-3.vercel.app' // fallback for SSR
+    return `${origin}${path}`
+  }
+
   const value = {
     user,
     session,
@@ -161,8 +178,12 @@ export const AuthProvider = ({ children }) => {
     signUp,
     signIn,
     signOut,
-    signInWithGoogle, // expose Google sign-in
+    signInWithGoogle
   }
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  )
 }
