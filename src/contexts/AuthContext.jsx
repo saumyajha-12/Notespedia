@@ -21,9 +21,7 @@
 
 //   useEffect(() => {
 //     const getSession = async () => {
-//       const {
-//         data: { session }
-//       } = await supabase.auth.getSession()
+//       const { data: { session } } = await supabase.auth.getSession()
 //       setSession(session)
 //       setUser(session?.user ?? null)
 //       setLoading(false)
@@ -31,9 +29,7 @@
 
 //     getSession()
 
-//     const {
-//       data: { subscription }
-//     } = supabase.auth.onAuthStateChange((_event, session) => {
+//     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
 //       setSession(session)
 //       setUser(session?.user ?? null)
 //       setLoading(false)
@@ -47,7 +43,7 @@
 //       email,
 //       password,
 //       options: {
-//         emailRedirectTo: `${window.location.origin}/profile-setup`,
+//         emailRedirectTo: getRedirectURL('/profile-setup'),
 //         data: {
 //           full_name: fullName
 //         }
@@ -57,19 +53,15 @@
 //   }
 
 //   const signIn = async (email, password) => {
-//     const { data, error } = await supabase.auth.signInWithPassword({
-//       email,
-//       password
-//     })
+//     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
 //     return { data, error }
 //   }
 
-//   // New: Google Sign-In using Supabase OAuth
 //   const signInWithGoogle = async () => {
 //     const { data, error } = await supabase.auth.signInWithOAuth({
 //       provider: 'google',
 //       options: {
-//         redirectTo: `${window.location.origin}/profile-setup`
+//         redirectTo: getRedirectURL('/profile-setup')
 //       }
 //     })
 //     return { data, error }
@@ -79,6 +71,14 @@
 //     await supabase.auth.signOut()
 //   }
 
+//   // 🔧 Utility to return correct redirect base
+//   const getRedirectURL = (path = '/') => {
+//     const origin = typeof window !== 'undefined'
+//       ? window.location.origin
+//       : 'https://notespedia-3.vercel.app' // fallback for SSR
+//     return `${origin}${path}`
+//   }
+
 //   const value = {
 //     user,
 //     session,
@@ -86,10 +86,14 @@
 //     signUp,
 //     signIn,
 //     signOut,
-//     signInWithGoogle, // expose Google sign-in
+//     signInWithGoogle
 //   }
 
-//   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+//   return (
+//     <AuthContext.Provider value={value}>
+//       {children}
+//     </AuthContext.Provider>
+//   )
 // }
 
 
@@ -131,6 +135,7 @@ export const AuthProvider = ({ children }) => {
   }, [])
 
   const signUp = async (email, password, fullName) => {
+    // This function remains unchanged
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -149,12 +154,11 @@ export const AuthProvider = ({ children }) => {
     return { data, error }
   }
 
+  // UPDATED FUNCTION
   const signInWithGoogle = async () => {
+    // The 'options' object with 'redirectTo' has been removed
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: {
-        redirectTo: getRedirectURL('/profile-setup')
-      }
     })
     return { data, error }
   }
@@ -163,7 +167,7 @@ export const AuthProvider = ({ children }) => {
     await supabase.auth.signOut()
   }
 
-  // 🔧 Utility to return correct redirect base
+  // Utility function remains unchanged
   const getRedirectURL = (path = '/') => {
     const origin = typeof window !== 'undefined'
       ? window.location.origin
