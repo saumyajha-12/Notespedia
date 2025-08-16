@@ -8,7 +8,6 @@ let supabase
 
 // Check if environment variables are properly configured
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('Supabase environment variables are not configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file.')
   
   // Create a mock client to prevent application crashes
   supabase = {
